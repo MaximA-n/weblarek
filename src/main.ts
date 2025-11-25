@@ -1,9 +1,9 @@
 import './scss/styles.scss';
-import { Products } from "../src/components/Models/Products";
-import { apiProducts } from "../src/utils/data";
-import { Basket } from "../src/components/Models/Basket";
-import { Buyer } from "../src/components/Models/Buyer";
-import { API_URL } from "../src/utils/constants";
+import { Products } from "./components/Models/Products";
+import { apiProducts } from "./utils/data";
+import { Basket } from "./components/Models/Basket";
+import { Buyer } from "./components/Models/Buyer";
+import { API_URL } from "./utils/constants";
 import { Api } from './components/base/Api';
 import { Service } from './components/Models/Communication';
 
@@ -25,8 +25,10 @@ console.log('Корзина:', basketModels.getItems());
 console.log('Цена:', basketModels.getPriceItems());
 console.log('Кол-во:', basketModels.getCountItems());
 
-console.log('Проверка наличия:', basketModels.checkProduct(apiProducts.items[0].id));
-console.log('Удаление:', basketModels.deleteProduct(apiProducts.items[0].id));
+const id =apiProducts.items[0].id
+console.log('Проверка наличия до удаления:', basketModels.checkProduct(id));
+basketModels.deleteProduct(id);
+console.log('Проверка наличия после удаления:', basketModels.checkProduct(id));
 
 basketModels.addProduct(apiProducts.items[0]);
 
@@ -43,13 +45,13 @@ buyerModels.setData({
 
 console.log('Buyer:', buyerModels.getData());
 console.log('Validate:', buyerModels.validateData());
-console.log('очистка:', buyerModels.clear());
+console.log('Очистка:', buyerModels.clear());
 
 const apiModels = new Api(API_URL);
 const serviceModels = new Service(apiModels);
 
 serviceModels.getApi()
-    .then((items) => {
-        productsModel.setItems(items);
+    .then((response) => {
+        productsModel.setItems(response.items);
         console.log('Товары с сервера:', productsModel.getItems());
     });

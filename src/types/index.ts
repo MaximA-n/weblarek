@@ -30,7 +30,17 @@ export interface IValidate {
     address?: string;
 }
 
-export interface IOrder {
-    buyer: IBuyer;
+export interface IOrder extends IBuyer{
+    items: string;
+    total: number;
+}
+
+export interface IResponseItems {
     items: IProduct[];
+    total: number;
+}
+
+export interface IOrderResponse {
+    id: string;
+    total: number;
 }

@@ -1,4 +1,4 @@
-import { IApi, IOrder, IProduct } from "../../types";
+import { IApi, IOrder, IOrderResponse, IResponseItems } from "../../types";
 
 export class Service {
     protected _api: IApi;
@@ -7,12 +7,11 @@ export class Service {
         this._api = api;
     }
 
-    getApi(): Promise<IProduct[]> {
-        return this._api.get<IProduct[]>('/product/')
-            .then((response) => response)
+    getApi(): Promise<IResponseItems> {
+        return this._api.get<IResponseItems>('/product/');
     }
 
-    postApi(data: IOrder) {
-        this._api.post('/order/', data);
+    postApi(data: IOrder): Promise<IOrderResponse> {
+        return this._api.post<IOrderResponse>('/order/', data);
     }
 }
