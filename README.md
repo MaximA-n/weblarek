@@ -173,3 +173,309 @@ Presenter - презентер содержит основную логику п
 
 - getApi - получение с сервера объекта с массивом товаров
 - postApi - запрос на сервер
+
+### Слой Представления (View)
+
+Слой Представления отвечает за отображение данных.
+
+### Класс Header
+
+Отображает шапку сайта и количество товаров в корзине.
+
+Поля класса:
+
+- counterElement: HTMLElement
+- basketButton: HTMLButtonElement
+
+Методы класса:
+
+- set counter(value: number) - обновление счётчика.
+
+Генерируемые события:
+
+- basket:open.
+
+#### Интерфейс IHeader
+
+Поля класса:
+
+- counter: number - количество товаров в корзине.
+
+### Класс Gallery
+
+Показывает массив товаров.
+
+Поля класса:
+
+- items: HTMLElement
+
+Методы класса:
+
+- set items(items: HTMLElement[]).
+
+#### Интерфейс IGallery
+
+Поля класса:
+
+- items: HTMLElement[] - массив товаров
+
+### Класс Modal
+
+Модальное окно.
+
+Поля класса:
+
+- contentElement: HTMLElement
+- closeButton: HTMLButtonElement
+
+Методы класса:
+
+- set content(value: HTMLElement | null)
+- open()
+- close()
+
+Генерируемые события:
+
+-  modal:close
+
+#### Интерфейс IModal
+
+Поля класса:
+
+- content: HTMLElement | null
+
+### Класс OrderSuccess
+
+Отвечает за отображение успешного оформления заказа.
+
+Поля класса:
+
+- textElement
+- closeButton
+
+Методы класса:
+
+- set text(value)
+- set total(value) — сумма.
+
+#### Интерфейс IOrderSuccess
+
+Поля класса:
+
+- text: string - описание
+
+### Класс CardMain
+
+Базовый класс карточки товара.
+
+Поля класса:
+
+- titleElement: HTMLElement
+- priceElement: HTMLElement
+
+Методы класса:
+
+- set title(value: string) — отображение заголовка.
+- set price(value: number | null) — отображение цены или текста "Бесценно".
+
+#### Интерфейс ICardMain
+
+Поля класса:
+
+- title: string — название товара.
+- price: number | null
+
+### Класс CardCatalog
+
+Класс отвечает за отображение товара в каталоге.
+
+Поля класса:
+
+- categoryElement: HTMLElement
+- imageElement: HTMLImageElement
+
+Методы класса:
+
+- set category(value: string)
+- set image(value: string)
+- set price(...)
+
+#### Интерфейс ICardCatalog
+
+Поля класса:
+
+- id: string
+- category: string
+- image: string
+
+### Класс CardSelected
+
+Класс отвечает за отображение карточки товара в модальном окне.
+
+Поля класса:
+
+- textElement
+- categoryElement
+- imageElement
+- buttonElement
+
+Методы класса:
+
+- set text(value)
+- set category(value)
+- set image(path)
+- set buttonLabel(value)
+- set buttonDisabled(value)
+- set price(value)
+
+#### Интерфейс ICardSelected
+
+Поля класса:
+
+- id: string
+- text: string — описание товара.
+- category: string
+- image: string
+- buttonLabel: string — подпись кнопки.
+- buttonDisabled?: boolean — блокировка кнопки.
+
+### Класс CardBasket
+
+Отображает товар в корзине пользователя.
+
+Поля класса:
+
+- indexElement: HTMLElement
+- deleteButton: HTMLButtonElement
+
+Методы класса:
+
+- set index(number)
+- set id(value)
+
+#### Интерфейс ICardBasket
+
+Поля класса:
+
+- index: number — позиция товара в корзине.
+- id: string
+
+### Класс BasketWrapper
+
+Отвечает за отображение корзины пользователя.
+
+Поля класса:
+
+- listElement
+- totalPriceElement
+- basketButton — кнопка оформления заказа.
+
+Методы класса:
+
+- set items(list)
+- set total(value)
+
+Генерируемые события:
+
+- basket:order
+
+#### Интерфейс IBasketWrapper
+
+Поля класса:
+
+- items: HTMLElement[] — массив товаров в корзине.
+- total: number — итоговая стоимость.
+
+### Класс FormMain
+
+Базовый класс формы.
+
+Поля класса:
+
+- errorsElement
+- submitButton
+
+Методы класса:
+
+- set valid(value)
+- set errors(value)
+
+#### Интерфейс IFormMain
+
+Поля класса:
+
+- valid: boolean
+- errors: string
+
+### Класс FormOrder
+
+Форма выбора адреса и способа оплаты.
+
+Поля класса:
+
+- addressElement: HTMLInputElement
+- cardButton: HTMLButtonElement
+- cashButton: HTMLButtonElement
+- payment: TPayment
+- address: string
+
+Методы класса:
+
+- updateAddress(value: string)
+- updatePayment(value: TPayment)
+- private updateValidity()
+
+Генерируемые события:
+
+- payment:changed,
+- address:changed,
+- paymentForm:submit.
+
+#### Интерфейс IFormOrder
+
+Поля класса:
+
+- address: string
+- payment: TPayment
+
+### Класс FormContacts
+
+Форма выбора email и телефона.
+
+Поля класса:
+
+- email: string
+- phone: string
+- emailElement: HTMLInputElement
+- phoneElement: HTMLInputElement
+
+Методы класса:
+
+- setEmail(value)
+- setPhone(value)
+- updateValidity()
+
+Генерируемые события:
+
+- contacts:change
+- contactsForm:submit.
+
+#### Интерфейс IFormContacts
+
+Поля класса:
+
+- email: string
+- phone: string
+
+### Presenter
+
+Презентер отвечает за соединение слоя Представления (View) и модели данных (Models).
+
+Презентер полностью контролирует процесс оформления заказа:
+- выбор товара
+- просмотр карточки
+- добавление в корзину
+- оформление
+- ввод данных
+- отправка заказа
+- экран успешного завершения.

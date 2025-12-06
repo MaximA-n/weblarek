@@ -31,7 +31,7 @@ export interface IValidate {
 }
 
 export interface IOrder extends IBuyer{
-    items: string;
+    items: string[];
     total: number;
 }
 

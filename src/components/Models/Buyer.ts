@@ -1,12 +1,15 @@
 import { IBuyer } from "../../types";
 import { TPayment } from "../../types";
 import { IValidate } from "../../types";
+import { IEvents } from "../base/Events";
 
 export class Buyer {
     protected _payment: TPayment = '';
     protected _address: string = '';
     protected _email: string = '';
     protected _phone: string = '';
+
+    constructor(protected events: IEvents) {}
 
     setData(data: Partial<IBuyer>) {
         if (data.payment !== undefined) {
@@ -23,7 +26,9 @@ export class Buyer {
         
         if (data.phone !== undefined) {
             this._phone = data.phone;
-        }        
+        }
+
+        this.events.emit('buyer:update', this.getData());
     }
 
     getData(): IBuyer {
@@ -40,6 +45,8 @@ export class Buyer {
         this._email = '';
         this._phone = '';
         this._address = '';
+
+        this.events.emit('buyer:clear');
     }
 
     validateData(): IValidate {
