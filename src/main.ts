@@ -24,7 +24,7 @@ import { Header } from './components/View/Header';
 import { Modal } from './components/View/Modal';
 import { OrderSuccess } from './components/View/OrderSuccess';
 
-import { IProduct, IOrder, TPayment } from "./types";
+import { IProduct, IOrder, TPayment, IBuyer } from "./types";
 
 const events = new EventEmitter();
 
@@ -47,6 +47,11 @@ const tplOrder = ensureElement<HTMLTemplateElement>('#order');
 const tplContacts = ensureElement<HTMLTemplateElement>('#contacts');
 const tplSuccess = ensureElement<HTMLTemplateElement>('#success');
 const tplBasket = ensureElement<HTMLTemplateElement>('#basket');
+
+const formContacts = new FormContacts(cloneTemplate(tplContacts), events);
+const formOrder = new FormOrder(cloneTemplate(tplOrder), events);
+const success = new OrderSuccess(cloneTemplate(tplSuccess), () => modal.close());
+const basketWrapper = new BasketWrapper(cloneTemplate(tplBasket), events);
 
 serviceModel.getApi()
     .then(response => productsModel.setItems(response.items))
@@ -98,8 +103,6 @@ events.on('products:select', (product: IProduct) => {
     modal.open();
 });
 
-let basketWrapper: BasketWrapper;
-
 events.on('basket:add', (product: IProduct) => {
     basketModel.addProduct(product);
     modal.close();
@@ -126,77 +129,71 @@ events.on('basket:change', () => {
 });
 
 events.on('basket:open', () => {
-    const basketEl = cloneTemplate(tplBasket);
-    basketWrapper = new BasketWrapper(basketEl, events);
-    modal.render({ content: basketEl });
+    modal.render({ content: basketWrapper.render() });
     events.emit('basket:change');
     modal.open();
 });
 
 events.on('basket:order', () => {
-    const form = new FormOrder(cloneTemplate(tplOrder), events);
     const data = buyerModel.getData();
-    form.updateAddress(data.address);
-    form.updatePayment(data.payment);
-    modal.render({ content: form.render() });
+    formOrder.updateAddress(data.address);
+    formOrder.updatePayment(data.payment);
+    modal.render({ content: formOrder.render() });
     modal.open();
 });
 
+events.on('payment:changed', (data: { payment: TPayment }) => {
+    buyerModel.setData({ payment: data.payment });
+});
+
+events.on('address:changed', (data: { address: string }) => {
+    buyerModel.setData({ address: data.address });
+});
+
+
 events.on('paymentForm:submit', () => {
     const v = buyerModel.validateData();
-    if (v.payment && v.address) {
-        const form = new FormContacts(cloneTemplate(tplContacts), events);
-        modal.render({ content: form.render() });
+
+    if (!v.payment && !v.address) {
+        modal.render({ content: formContacts.render() });
         modal.open();
     } else {
-        const form = new FormOrder(cloneTemplate(tplOrder), events);
-        form.errors = 'Заполните все поля корректно';
-        modal.render({ content: form.render() });
+        formOrder.errors = 'Заполните все поля корректно';
+        modal.render({ content: formOrder.render() });
         modal.open();
     }
 });
+
+events.on<{ field: keyof IBuyer; value: string }>(
+    'contacts:change',
+    ({ field, value }) => {
+        buyerModel.setData({ [field]: value });
+    }
+);
 
 events.on('contactsForm:submit', () => {
-    const validation = buyerModel.validateData();
-    const emailError = validation.email;
-    const phoneError = validation.phone;
+    const orderData: IOrder = {
+        ...buyerModel.getData(),
+        items: basketModel.getItems().map(i => i.id),
+        total: basketModel.getPriceItems()
+    };
 
-    if (!emailError && !phoneError) {
-        const orderData: IOrder = {
-            payment: buyerModel.getData().payment as TPayment,
-            email: buyerModel.getData().email,
-            phone: buyerModel.getData().phone,
-            address: buyerModel.getData().address,
-            items: basketModel.getItems().map(i => i.id),
-            total: basketModel.getPriceItems()
-        };
+    serviceModel.postApi(orderData)
+        .then(res => {
+            success.total = res.total;
 
-        serviceModel.postApi(orderData)
-            .then(res => {
-                const success = new OrderSuccess(cloneTemplate(tplSuccess), () => modal.close());
-                success.total = res.total;
+            modal.render({ content: success.render() });
+            modal.open();
 
-                modal.render({ content: success.render() });
-                modal.open();
-
-                basketModel.emptyTrash();
-                buyerModel.clear();
-            })
-            .catch(err => {
-                console.error('Ошибка при создании заказа:', err);
-
-                const form = new FormContacts(cloneTemplate(tplContacts), events);
-                form.errors = 'Ошибка при оформлении заказа. Попробуйте еще раз.';
-                modal.render({ content: form.render() });
-                modal.open();
-            });
-    } else {
-        const form = new FormContacts(cloneTemplate(tplContacts), events);
-        form.errors = 'Заполните телефон и email корректно';
-        modal.render({ content: form.render() });
-        modal.open();
+            basketModel.emptyTrash();
+            buyerModel.clear();
+        })
+        .catch(err => {
+            console.error('Ошибка при создании заказа:', err);
+            formContacts.errors = 'Ошибка при оформлении заказа. Попробуйте еще раз.';
+        });
     }
-});
+);
 
 events.on('success:close', () => modal.close());
 events.on('modal:close', () => modal.close());
