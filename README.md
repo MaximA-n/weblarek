@@ -205,10 +205,6 @@ Presenter - презентер содержит основную логику п
 
 Показывает массив товаров.
 
-Поля класса:
-
-- items: HTMLElement
-
 Методы класса:
 
 - set items(items: HTMLElement[]).
@@ -298,7 +294,6 @@ Presenter - презентер содержит основную логику п
 
 - set category(value: string)
 - set image(value: string)
-- set price(...)
 
 #### Интерфейс ICardCatalog
 
@@ -347,11 +342,8 @@ Presenter - презентер содержит основную логику п
 
 - indexElement: HTMLElement
 - deleteButton: HTMLButtonElement
-
-Методы класса:
-
-- set index(number)
-- set id(value)
+- id: string
+- index: number
 
 #### Интерфейс ICardBasket
 
@@ -394,11 +386,13 @@ Presenter - презентер содержит основную логику п
 
 - errorsElement
 - submitButton
+- valid = false;
 
 Методы класса:
 
-- set valid(value)
-- set errors(value)
+- setValid(value)
+- setErrors(value)
+- updateButtonState()
 
 #### Интерфейс IFormMain
 
@@ -423,7 +417,6 @@ Presenter - презентер содержит основную логику п
 
 - updateAddress(value: string)
 - updatePayment(value: TPayment)
-- private updateValidity()
 
 Генерируемые события:
 
@@ -453,7 +446,6 @@ Presenter - презентер содержит основную логику п
 
 - setEmail(value)
 - setPhone(value)
-- updateValidity()
 
 Генерируемые события:
 

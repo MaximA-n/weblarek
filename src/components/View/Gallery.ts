@@ -5,15 +5,11 @@ interface IGallery {
 }
 
 export class Gallery extends Component<IGallery> {
-    protected item: HTMLElement;
-
     constructor(container: HTMLElement) {
-        super(container);
-
-        this.item = container;        
+        super(container);       
     }
 
     set items(items: HTMLElement[]) {
-        this.item.replaceChildren(...items);
+        this.container.replaceChildren(...items);
     }
 }

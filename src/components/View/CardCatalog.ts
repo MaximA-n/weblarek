@@ -32,8 +32,4 @@ export class CardCatalog extends CardMain {
     set image(value: string) {
         this.setImage(this.imageElement, `${CDN_URL}/${value}`, this.titleElement.textContent ?? '');
     }
-
-    set price(value: number | null) {
-        this.priceElement.textContent = value === null ? 'Бесценно' : `${value} синапсов`;
-    }
 }

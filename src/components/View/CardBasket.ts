@@ -13,8 +13,10 @@ export interface ICardBasketActions {
 export class CardBasket extends CardMain {
     protected indexElement: HTMLElement;
     protected deleteButton: HTMLButtonElement;
+    id: string = '';
+    index: number = 0;
 
-    constructor(container: HTMLElement, actions?: ICardBasketActions) {
+    constructor(container: HTMLElement, private actions?: ICardBasketActions) {
         super(container);
 
         this.indexElement = ensureElement<HTMLElement>('.basket__item-index', this.container);
@@ -22,18 +24,9 @@ export class CardBasket extends CardMain {
 
         this.deleteButton.addEventListener('click', (ev) => {
             ev.stopPropagation();
-            if (actions?.onDelete) {
-                const id = this.container.dataset.id;
-                if (id) actions.onDelete({ id });
+            if (this.actions?.onDelete) {
+                this.actions.onDelete({ id: this.id });
             }
         });
-    }
-
-    set index(index: number) {
-        this.indexElement.textContent = String(index);
-    }
-
-    set id(value: string) {
-        this.container.dataset.id = value;
     }
 }

@@ -10,6 +10,7 @@ export interface IFormMain {
 export class FormMain extends Component<IFormMain> {
     protected errorsElement: HTMLElement;
     protected submitButton: HTMLButtonElement;
+    protected valid = false;
 
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
@@ -18,11 +19,16 @@ export class FormMain extends Component<IFormMain> {
         this.submitButton = ensureElement<HTMLButtonElement>('.button[type="submit"]', this.container);
     }
 
-    set valid(value: boolean) {
-        this.submitButton.disabled = !value;
+    setValid(value: boolean) {
+        this.valid = value;
+        this.updateButtonState();
     }
 
-    set errors(value: string) {
+    setErrors(value: string = '') {
         this.errorsElement.textContent = value;
+    }
+
+    protected updateButtonState() {
+        this.submitButton.disabled = !this.valid;
     }
 }

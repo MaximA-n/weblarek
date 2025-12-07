@@ -50,7 +50,7 @@ export class Buyer {
     }
 
     validateData(): IValidate {
-        let message: IValidate = {};
+        const message: IValidate = {};
         
         if (!this._payment) {
             message.payment = 'Не выбран вид оплаты';

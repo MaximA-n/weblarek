@@ -8,7 +8,7 @@ export interface IFormOrder extends IFormMain {
     payment: TPayment;
 }
 
-export class FormOrder extends FormMain implements IFormOrder {
+export class FormOrder extends FormMain {
     protected addressElement: HTMLInputElement;
     protected cardButton: HTMLButtonElement;
     protected cashButton: HTMLButtonElement;
@@ -24,29 +24,21 @@ export class FormOrder extends FormMain implements IFormOrder {
         this.cashButton = ensureElement<HTMLButtonElement>('button[name="cash"]', this.container);
 
         this.cardButton.addEventListener('click', () => {
-            this.updatePayment('card');
-            this.events.emit('payment:changed', { payment: this.payment });
-            this.updateValidity();
+            this.events.emit('payment:changed', { payment: 'card' });
         });
 
         this.cashButton.addEventListener('click', () => {
-            this.updatePayment('cash');
-            this.events.emit('payment:changed', { payment: this.payment });
-            this.updateValidity();
+            this.events.emit('payment:changed', { payment: 'cash' });
         });
 
         this.addressElement.addEventListener('input', () => {
-            this.updateAddress(this.addressElement.value);
-            this.events.emit('address:changed', { address: this.address });
-            this.updateValidity();
+            this.events.emit('address:changed', { address: this.addressElement.value });
         });
 
         this.submitButton.addEventListener('click', (evt) => {
             evt.preventDefault();
             this.events.emit('paymentForm:submit');
         });
-
-        this.updateValidity();
     }
 
     updateAddress(value: string) {
@@ -56,19 +48,7 @@ export class FormOrder extends FormMain implements IFormOrder {
 
     updatePayment(value: TPayment) {
         this.payment = value;
-
-        this.cardButton.classList.toggle('active', value === 'card');
-        this.cashButton.classList.toggle('active', value === 'cash');
-    }
-
-    protected updateValidity() {
-        const addressValid = this.address.trim() !== '';
-        const paymentValid = this.payment === 'card' || this.payment === 'cash';
-
-        this.valid = addressValid && paymentValid;
-
-        if (!addressValid) this.errors = 'Введите адрес доставки';
-        else if (!paymentValid) this.errors = 'Выберите способ оплаты';
-        else this.errors = '';
+        this.cardButton.classList.toggle('button_alt-active', value === 'card');
+        this.cashButton.classList.toggle('button_alt-active', value === 'cash');
     }
 }

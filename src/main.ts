@@ -74,19 +74,9 @@ events.on('card:select', (data: { id: string }) => {
 
 events.on('products:select', (product: IProduct) => {
     const inBasket = basketModel.checkProduct(product.id);
-    const card = new CardSelected(cloneTemplate(tplCardPreview), {
-        onClick: () => {
-            if (product.price === null) return;
 
-            const nowInBasket = basketModel.checkProduct(product.id);
-            if (nowInBasket) {
-                basketModel.deleteProduct(product.id);
-            } else {
-                basketModel.addProduct(product);
-            }
-            events.emit('basket:change');
-            modal.close();
-        }
+    const card = new CardSelected(cloneTemplate(tplCardPreview), {
+        onClick: () => events.emit("product:toggle", { id: product.id })
     });
 
     const cardData = {
@@ -103,10 +93,24 @@ events.on('products:select', (product: IProduct) => {
     modal.open();
 });
 
+events.on("product:toggle", ({ id }: { id: string }) => {
+    const product = productsModel.getProductId(id);
+    if (!product || product.price === null) return;
+
+    const inBasket = basketModel.checkProduct(id);
+
+    if (inBasket) {
+        basketModel.deleteProduct(id);
+    } else {
+        basketModel.addProduct(product);
+    }
+
+    modal.close();
+});
+
 events.on('basket:add', (product: IProduct) => {
     basketModel.addProduct(product);
     modal.close();
-    events.emit('basket:change');
 });
 
 events.on('basket:remove', (data: { id: string }) => basketModel.deleteProduct(data.id));
@@ -122,15 +126,12 @@ events.on('basket:change', () => {
         return card.render({ title: item.title, price: item.price });
     });
 
-    if (basketWrapper) {
-        basketWrapper.render({ items: cards, total: basketModel.getPriceItems() });
-    }
+    basketWrapper.render({ items: cards, total: basketModel.getPriceItems() });
     header.counter = basketModel.getCountItems();
 });
 
 events.on('basket:open', () => {
     modal.render({ content: basketWrapper.render() });
-    events.emit('basket:change');
     modal.open();
 });
 
@@ -144,56 +145,68 @@ events.on('basket:order', () => {
 
 events.on('payment:changed', (data: { payment: TPayment }) => {
     buyerModel.setData({ payment: data.payment });
+
+    const v = buyerModel.validateData();
+    const isValid = !v.address && !v.payment;
+
+    formOrder.setErrors([v.address, v.payment].filter(Boolean).join(', '));
+    formOrder.setValid(isValid);
 });
 
 events.on('address:changed', (data: { address: string }) => {
     buyerModel.setData({ address: data.address });
-});
 
-
-events.on('paymentForm:submit', () => {
     const v = buyerModel.validateData();
+    const isValid = !v.address && !v.payment;
 
-    if (!v.payment && !v.address) {
-        modal.render({ content: formContacts.render() });
-        modal.open();
-    } else {
-        formOrder.errors = 'Заполните все поля корректно';
-        modal.render({ content: formOrder.render() });
-        modal.open();
-    }
+    formOrder.setErrors([v.address, v.payment].filter(Boolean).join(', '));
+    formOrder.setValid(isValid);
 });
 
 events.on<{ field: keyof IBuyer; value: string }>(
     'contacts:change',
     ({ field, value }) => {
         buyerModel.setData({ [field]: value });
+
+        const v = buyerModel.validateData();
+        const isValid = !v.email && !v.phone;
+
+        formContacts.setErrors([v.email, v.phone].filter(Boolean).join(', '));
+        formContacts.setValid(isValid);
     }
 );
 
+events.on('paymentForm:submit', () => {
+    const v = buyerModel.validateData();
+
+    if (v.address || v.payment) {
+        formOrder.setErrors([v.address, v.payment].filter(Boolean).join(', '));
+        return;
+    }
+
+    modal.render({ content: formContacts.render() });
+    modal.open();
+});
+
 events.on('contactsForm:submit', () => {
-    const orderData: IOrder = {
+    const order: IOrder = {
         ...buyerModel.getData(),
         items: basketModel.getItems().map(i => i.id),
         total: basketModel.getPriceItems()
     };
 
-    serviceModel.postApi(orderData)
+    serviceModel.postApi(order)
         .then(res => {
             success.total = res.total;
-
             modal.render({ content: success.render() });
             modal.open();
-
             basketModel.emptyTrash();
             buyerModel.clear();
         })
-        .catch(err => {
-            console.error('Ошибка при создании заказа:', err);
-            formContacts.errors = 'Ошибка при оформлении заказа. Попробуйте еще раз.';
+        .catch(() => {
+            formContacts.setErrors('Ошибка оформления заказа');
         });
-    }
-);
+});
 
 events.on('success:close', () => modal.close());
 events.on('modal:close', () => modal.close());

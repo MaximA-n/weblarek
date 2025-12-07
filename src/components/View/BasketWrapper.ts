@@ -25,7 +25,7 @@ export class BasketWrapper extends Component<IBasketWrapper> {
     }
 
     set items(list: HTMLElement[]) {
-        if (!list || list.length === 0) {
+        if (list.length === 0) {
             this.basketButton.disabled = true;
             this.basketButton.classList.add('button_disabled');
 
